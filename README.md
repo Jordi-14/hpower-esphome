@@ -10,6 +10,12 @@ Only use this with pool equipment you own and can physically supervise. The obse
 
 This project is not affiliated with, endorsed by, or supported by Hayward.
 
+## App Relationship
+
+Hayward's H-Power product page points users to the HPOWER app, but the HPOWER app store listings identify the developer as Toscano Linea Electronica SL. Toscano's `tpool` / `tpool-b` app listings describe the same BLE-pool / TPM-Pool controller workflow and the same pump, light, status, and schedule-related features.
+
+For this project, HPOWER is treated as a Hayward-branded variant in the same Toscano app/protocol family as `tpool`. This repository documents behavior observed through HPOWER, but `tpool` references can be useful when looking for app history, manuals, or related Toscano controller documentation.
+
 ## Current Scope
 
 The HPOWER app currently exposes only pump and light control for this controller. This ESPHome bridge follows that scope and does not attempt to control heaters, chlorinators, valves, or any other pool equipment.
@@ -76,3 +82,11 @@ Do not publish your real `secrets.yaml`, Wi-Fi credentials, local IP addresses, 
 ## Protocol Notes
 
 The reusable protocol notes are in `docs/protocol.md`. The implementation intentionally sends only known commands and does not expose arbitrary BLE writes.
+
+## References
+
+- [Hayward H-Power product page](https://www.hayward.es/catalog/cuadros-electricos/cuadro-electrico-h-power)
+- [HPOWER on Google Play](https://play.google.com/store/apps/details?id=com.ovnisoft.ecopool.hayward)
+- [HPOWER on the App Store](https://apps.apple.com/ie/app/hpower/id1436773059)
+- [tpool on Google Play](https://play.google.com/store/apps/details?id=com.ovnisoft.ecopool)
+- [tpool on the App Store](https://apps.apple.com/es/app/tpool/id1207422645)

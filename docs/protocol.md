@@ -7,6 +7,8 @@ The HPOWER controller uses a vendor-style BLE service and characteristic:
 | Service | `0000ffe0-0000-1000-8000-00805f9b34fb` |
 | Characteristic | `0000ffe1-0000-1000-8000-00805f9b34fb` |
 
+The HPOWER and Toscano `tpool` / `tpool-b` apps appear to belong to the same controller family: public app listings identify Toscano Linea Electronica SL as the HPOWER app developer, and the HPOWER and `tpool` app descriptions cover the same BLE-pool / TPM-Pool pump and light workflow. The notes below are based on HPOWER captures, but `tpool` documentation may help explain the same protocol family.
+
 Commands are five-byte writes to `FFE1`.
 
 | Command | Payload |

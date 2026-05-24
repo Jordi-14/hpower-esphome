@@ -4,6 +4,8 @@ The ESPHome configuration needs the BLE MAC address of your own pool controller.
 
 The known app surface for this controller is pump and light control only. If your app shows additional equipment, treat that as unverified and do not assume this bridge supports it.
 
+HPOWER appears to be a Hayward-branded app in the same Toscano BLE-pool / TPM-Pool family as `tpool` / `tpool-b`. During discovery you may therefore see Toscano, tpool, BLE-pool, TPM-Pool, or HPOWER wording used for closely related hardware and app documentation.
+
 ## With A BLE Scanner App
 
 1. Stand near the pool controller.

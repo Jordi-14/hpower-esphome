@@ -1,0 +1,41 @@
+# Protocol Notes
+
+The HPOWER controller uses a vendor-style BLE service and characteristic:
+
+| Name | UUID |
+| --- | --- |
+| Service | `0000ffe0-0000-1000-8000-00805f9b34fb` |
+| Characteristic | `0000ffe1-0000-1000-8000-00805f9b34fb` |
+
+Commands are five-byte writes to `FFE1`.
+
+| Command | Payload |
+| --- | --- |
+| Status poll | `65 6F DE 00 00` |
+| Pump on | `65 6F DE 01 00` |
+| Pump off | `65 6F DE 02 00` |
+| Pump schedule | `65 6F DE 03 00` |
+| Light on | `65 6F DE 04 00` |
+| Light off | `65 6F DE 05 00` |
+| Light schedule | `65 6F DE 06 00` |
+
+Status notifications are parsed as 22-byte frames beginning with:
+
+```text
+65 6F DE
+```
+
+The current ESPHome bridge decodes the final byte in each 22-byte status frame:
+
+| Bit mask | Meaning |
+| --- | --- |
+| `0x80` | Pump running |
+| `0x40` | Pump mode on |
+| `0x20` | Pump mode off |
+| `0x10` | Light on |
+| `0x08` | Light mode on |
+| `0x04` | Light mode off |
+
+If neither pump mode bit is set, the bridge reports pump mode as `Schedule`. If neither light mode bit is set, it reports light mode as `Schedule`.
+
+Keep `Last Frame` enabled while validating new hardware so you can compare decoded state with the raw BLE response.

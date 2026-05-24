@@ -1,0 +1,291 @@
+substitutions:
+  device_name: hpower-pool
+  friendly_name: HPOWER Pool
+  fallback_ssid: HPOWER Pool Fallback
+  pool_mac: "AA:BB:CC:DD:EE:FF"
+  hpower_service_uuid: "0000ffe0-0000-1000-8000-00805f9b34fb"
+  hpower_characteristic_uuid: "0000ffe1-0000-1000-8000-00805f9b34fb"
+
+esphome:
+  name: ${device_name}
+  friendly_name: ${friendly_name}
+  includes:
+    - hpower_helpers.h
+
+esp32:
+  board: seeed_xiao_esp32s3
+  framework:
+    type: arduino
+
+logger:
+  level: DEBUG
+
+api:
+
+ota:
+  - platform: esphome
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  ap:
+    ssid: ${fallback_ssid}
+
+captive_portal:
+
+esp32_ble_tracker:
+  scan_parameters:
+    active: true
+  on_ble_advertise:
+    - mac_address:
+        - ${pool_mac}
+      then:
+        - lambda: |-
+            ESP_LOGD(
+                "hpower",
+                "Saw pool advertisement: address=%s rssi=%d name=%s",
+                x.address_str().c_str(),
+                x.get_rssi(),
+                x.get_name().c_str());
+
+ble_client:
+  - mac_address: ${pool_mac}
+    id: hpower_pool_ble
+    auto_connect: true
+    on_connect:
+      then:
+        - lambda: |-
+            id(hpower_ble_connected).publish_state(true);
+        - delay: 2s
+        - script.execute: hpower_send_status
+    on_disconnect:
+      then:
+        - lambda: |-
+            id(hpower_ble_connected).publish_state(false);
+
+globals:
+  - id: hpower_rx_buffer
+    type: std::vector<uint8_t>
+    restore_value: no
+    initial_value: "std::vector<uint8_t>()"
+
+script:
+  - id: hpower_send_status
+    mode: restart
+    then:
+      - ble_client.ble_write:
+          id: hpower_pool_ble
+          service_uuid: ${hpower_service_uuid}
+          characteristic_uuid: ${hpower_characteristic_uuid}
+          value: [0x65, 0x6F, 0xDE, 0x00, 0x00]
+
+  - id: hpower_send_pump_on
+    mode: restart
+    then:
+      - ble_client.ble_write:
+          id: hpower_pool_ble
+          service_uuid: ${hpower_service_uuid}
+          characteristic_uuid: ${hpower_characteristic_uuid}
+          value: [0x65, 0x6F, 0xDE, 0x01, 0x00]
+      - delay: 7s
+      - script.execute: hpower_send_status
+
+  - id: hpower_send_pump_off
+    mode: restart
+    then:
+      - ble_client.ble_write:
+          id: hpower_pool_ble
+          service_uuid: ${hpower_service_uuid}
+          characteristic_uuid: ${hpower_characteristic_uuid}
+          value: [0x65, 0x6F, 0xDE, 0x02, 0x00]
+      - delay: 7s
+      - script.execute: hpower_send_status
+
+  - id: hpower_send_pump_schedule
+    mode: restart
+    then:
+      - ble_client.ble_write:
+          id: hpower_pool_ble
+          service_uuid: ${hpower_service_uuid}
+          characteristic_uuid: ${hpower_characteristic_uuid}
+          value: [0x65, 0x6F, 0xDE, 0x03, 0x00]
+      - delay: 7s
+      - script.execute: hpower_send_status
+
+  - id: hpower_send_light_on
+    mode: restart
+    then:
+      - ble_client.ble_write:
+          id: hpower_pool_ble
+          service_uuid: ${hpower_service_uuid}
+          characteristic_uuid: ${hpower_characteristic_uuid}
+          value: [0x65, 0x6F, 0xDE, 0x04, 0x00]
+      - delay: 7s
+      - script.execute: hpower_send_status
+
+  - id: hpower_send_light_off
+    mode: restart
+    then:
+      - ble_client.ble_write:
+          id: hpower_pool_ble
+          service_uuid: ${hpower_service_uuid}
+          characteristic_uuid: ${hpower_characteristic_uuid}
+          value: [0x65, 0x6F, 0xDE, 0x05, 0x00]
+      - delay: 7s
+      - script.execute: hpower_send_status
+
+  - id: hpower_send_light_schedule
+    mode: restart
+    then:
+      - ble_client.ble_write:
+          id: hpower_pool_ble
+          service_uuid: ${hpower_service_uuid}
+          characteristic_uuid: ${hpower_characteristic_uuid}
+          value: [0x65, 0x6F, 0xDE, 0x06, 0x00]
+      - delay: 7s
+      - script.execute: hpower_send_status
+
+interval:
+  - interval: 30s
+    then:
+      - if:
+          condition:
+            binary_sensor.is_on: hpower_ble_connected
+          then:
+            - script.execute: hpower_send_status
+
+select:
+  - platform: template
+    id: hpower_pump_mode
+    name: "Pump Mode"
+    icon: "mdi:pump"
+    restore_value: false
+    initial_option: "Schedule"
+    options:
+      - "On"
+      - "Off"
+      - "Schedule"
+    optimistic: false
+    set_action:
+      - if:
+          condition:
+            lambda: 'return x == "On";'
+          then:
+            - script.execute: hpower_send_pump_on
+          else:
+            - if:
+                condition:
+                  lambda: 'return x == "Off";'
+                then:
+                  - script.execute: hpower_send_pump_off
+                else:
+                  - script.execute: hpower_send_pump_schedule
+
+  - platform: template
+    id: hpower_light_mode
+    name: "Light Mode"
+    icon: "mdi:lightbulb-auto"
+    restore_value: false
+    initial_option: "Schedule"
+    options:
+      - "On"
+      - "Off"
+      - "Schedule"
+    optimistic: false
+    set_action:
+      - if:
+          condition:
+            lambda: 'return x == "On";'
+          then:
+            - script.execute: hpower_send_light_on
+          else:
+            - if:
+                condition:
+                  lambda: 'return x == "Off";'
+                then:
+                  - script.execute: hpower_send_light_off
+                else:
+                  - script.execute: hpower_send_light_schedule
+
+binary_sensor:
+  - platform: template
+    id: hpower_pump_running
+    name: "Pump Running"
+    device_class: running
+
+  - platform: template
+    id: hpower_light_on
+    name: "Light On"
+    icon: "mdi:lightbulb"
+
+  - platform: template
+    id: hpower_ble_connected
+    name: "BLE Connected"
+    device_class: connectivity
+    entity_category: diagnostic
+
+sensor:
+  - platform: ble_client
+    type: characteristic
+    id: hpower_ffe1_notifications
+    internal: true
+    ble_client_id: hpower_pool_ble
+    service_uuid: ${hpower_service_uuid}
+    characteristic_uuid: ${hpower_characteristic_uuid}
+    notify: true
+    update_interval: never
+    lambda: |-
+      const auto frames = hpower::extract_frames(id(hpower_rx_buffer), x);
+      if (frames.empty()) {
+        return NAN;
+      }
+
+      float last_tail = NAN;
+      for (const auto &frame : frames) {
+        const uint8_t tail = frame.bytes[21];
+        last_tail = static_cast<float>(tail);
+
+        id(hpower_pump_running).publish_state(hpower::pump_running(tail));
+        id(hpower_light_on).publish_state(hpower::light_on(tail));
+        id(hpower_pump_mode).publish_state(hpower::pump_mode(tail));
+        id(hpower_light_mode).publish_state(hpower::light_mode(tail));
+        id(hpower_status_tail).publish_state(static_cast<float>(tail));
+        id(hpower_last_frame).publish_state(hpower::hex(frame.bytes.data(), frame.bytes.size()));
+      }
+
+      return last_tail;
+
+  - platform: template
+    id: hpower_status_tail
+    name: "Status Tail"
+    icon: "mdi:code-tags"
+    accuracy_decimals: 0
+    entity_category: diagnostic
+
+  - platform: wifi_signal
+    name: "WiFi RSSI"
+    entity_category: diagnostic
+
+  - platform: ble_rssi
+    mac_address: ${pool_mac}
+    name: "Pool BLE RSSI"
+    entity_category: diagnostic
+
+text_sensor:
+  - platform: template
+    id: hpower_last_frame
+    name: "Last Frame"
+    icon: "mdi:code-braces"
+    entity_category: diagnostic
+
+button:
+  - platform: template
+    name: "Poll Status"
+    icon: "mdi:refresh"
+    entity_category: diagnostic
+    on_press:
+      - script.execute: hpower_send_status
+
+  - platform: restart
+    name: "Restart"
+    entity_category: diagnostic

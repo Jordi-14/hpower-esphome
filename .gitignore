@@ -1,0 +1,12 @@
+.esphome/
+.pio/
+.vscode/
+
+secrets.yaml
+*.log
+*.pklg
+*.pcap
+*.pcapng
+
+__pycache__/
+.DS_Store

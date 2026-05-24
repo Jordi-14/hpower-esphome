@@ -2,6 +2,8 @@
 
 The ESPHome configuration needs the BLE MAC address of your own pool controller.
 
+The known app surface for this controller is pump and light control only. If your app shows additional equipment, treat that as unverified and do not assume this bridge supports it.
+
 ## With A BLE Scanner App
 
 1. Stand near the pool controller.

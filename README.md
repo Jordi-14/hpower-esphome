@@ -6,9 +6,15 @@ This project exposes pump and light controls through Home Assistant, polls the c
 
 ## Safety
 
-Only use this with pool equipment you own and can physically supervise. Pool controllers can operate pumps, lights, heaters, chlorinators, valves, or safety-related equipment. Verify every command on your own hardware before relying on automation.
+Only use this with pool equipment you own and can physically supervise. The observed HPOWER app surface for this controller is limited to pump and light control, but those controls still affect physical equipment. Verify every command on your own hardware before relying on automation.
 
 This project is not affiliated with, endorsed by, or supported by Hayward.
+
+## Current Scope
+
+The HPOWER app currently exposes only pump and light control for this controller. This ESPHome bridge follows that scope and does not attempt to control heaters, chlorinators, valves, or any other pool equipment.
+
+The app also has schedule-setting screens, but schedule editing currently crashes on iPhone in the observed setup. This project can switch pump and light back to schedule mode, but full schedule editing is treated as future work.
 
 ## What It Provides
 
@@ -57,8 +63,8 @@ Do not publish your real `secrets.yaml`, Wi-Fi credentials, local IP addresses, 
 
 | Entity | Type | Purpose |
 | --- | --- | --- |
-| Pump Mode | Select | Sends pump On, Off, or Schedule commands. |
-| Light Mode | Select | Sends light On, Off, or Schedule commands. |
+| Pump Mode | Select | Sends pump On, Off, or Schedule mode commands. |
+| Light Mode | Select | Sends light On, Off, or Schedule mode commands. |
 | Pump Running | Binary sensor | Decoded from the latest status frame. |
 | Light On | Binary sensor | Decoded from the latest status frame. |
 | BLE Connected | Binary sensor | ESP32 connection state to the pool controller. |
